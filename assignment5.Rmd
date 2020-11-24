@@ -16,8 +16,9 @@ The data you will be using comes from the Assistments online intelligent tutorin
 
 ## Start by uploading the data
 ```{r}
-D1 <- 
-
+library(tidyverse)
+library(dplyr)
+D1 <- read.csv("Assistments-confidence.csv", header = TRUE)
 ```
 
 ## Create a correlation matrix of the relationships between the variables, including correlation coefficients for each pair of variables/features.
@@ -27,6 +28,7 @@ D1 <-
 
 library(ggplot2)
 library(GGally)
+library(corrplot)
 
 ggpairs(D1, 2:8, progress = FALSE) #ggpairs() draws a correlation plot between all the columns you identify by number (second option, you don't need the first column as it is the student ID) and progress = FALSE stops a progress bar appearing as it renders your plot
 
@@ -38,8 +40,7 @@ ggcorr(D1[,-1], method = c("everything", "pearson")) #ggcorr() doesn't have an e
 ## Create a new data frame with the mean_correct variable removed, we want to keep that variable intact. The other variables will be included in our PCA.
 
 ```{r}
-D2 <- 
-
+D2 <- select(D1, 2:4, 6:8)
 ```
 
 ## Now run the PCA on the new data frame
@@ -67,21 +68,22 @@ plot(pca, type = "lines")
 ```
 
 ## Decide which components you would drop and remove them from your data set.
-
+## PC1 and PC2 are likely to be dropped because of the big drops around these two compnents.
 ## Part II
 
 ```{r}
 #Now, create a data frame of the transformed data from your pca.
 
-D3 <- 
+D3 <- as.data.frame(pca$x)
 
 #Attach the variable "mean_correct" from your original data frame to D3.
 
+D3 <- cbind(D3, D1$mean_correct)
 
-
-#Now re-run your correlation plots between the transformed data and mean_correct. If you had dropped some components would you have lost important infomation about mean_correct?
-
-
+#Now re-run your correlation plots between the transformed data and mean_correct. If you had dropped some components would you have lost important information about mean_correct?
+ggpairs(D3, progress = FALSE)
+ggcorr(D3, method = c("everything", "pearson"))
+# It could be referred that PC1 and PC2 are positively correlated with mean_correct. The correlation between PC1/PC2 and mean_correct will not detected if they are dropped.
 
 ```
 ## Now print out the loadings for the components you generated:
@@ -102,9 +104,18 @@ biplot(pca)
 
 ```
 # Part III  
-Also in this repository is a data set collected from TC students (tc-program-combos.csv) that shows how many students thought that a TC program was related to andother TC program. Students were shown three program names at a time and were asked which two of the three were most similar. Use PCA to look for components that represent related programs. Explain why you think there are relationships between these programs.
+Also in this repository is a data set collected from TC students (tc-program-combos.csv) that shows how many students thought that a TC program was related to another TC program. Students were shown three program names at a time and were asked which two of the three were most similar. Use PCA to look for components that represent related programs. Explain why you think there are relationships between these programs.
 
 ```{r}
+F1 <- read.csv("tc-program-combos.csv", header = TRUE)
+F1 <- slice(F1, 1:68)
+rownames(F1) <- F1[,1]
+F1 <- select(F1, 2:49)
+pca.F1 <- prcomp(F1, scale. = TRUE)
+plot(pca.F1, type = "lines")
+# The part from 5 to 8 will be chosen for analysis. 
+DF1 <- as.data.frame(pca.F1$rotation)
+##In PC5, programs are more related to art, such as Music, Dance Education, Art Administration, Art Education. PC6 is focus more on Early Childhood Education and Developmental Psychology. PC7 is centered on investigating and measuring how people learn, such as Learning Analytics, Anthropology, Measurement Evaluation and Statistics. PC8 is concerning behavioral or physical related Education, such as Health Education, Behavior Analysis etc.
 
 ```
 
